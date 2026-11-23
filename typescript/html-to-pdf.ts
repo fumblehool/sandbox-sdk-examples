@@ -22,9 +22,35 @@ if (!args[0]) console.log(`no page given, using ${DEFAULT_SOURCE}`);
 
 const SCRIPT = `
 import { chromium } from "playwright";
+
+// Sites such as Hacker News answer a burst of requests with a throttle page.
+// Retry with backoff instead of printing that page to the PDF.
+const THROTTLED = /not able to serve your requests this quickly|too many requests|rate limit/i;
+const WAITS_MS = [0, 5000, 15000, 30000];
+
 const browser = await chromium.launch({ args: ["--disable-dev-shm-usage"] });
-const page = await browser.newPage();
-await page.goto(process.env.TARGET, { waitUntil: "load", timeout: 45000 });
+const page = await browser.newPage({
+  userAgent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/159.0 Safari/537.36",
+});
+let ok = false;
+for (const [attempt, wait] of WAITS_MS.entries()) {
+  if (wait) {
+    console.error("throttled, retrying in " + wait / 1000 + " s");
+    await page.waitForTimeout(wait);
+  }
+  const response = await page.goto(process.env.TARGET, { waitUntil: "load", timeout: 45000 });
+  const status = response ? response.status() : 0;
+  const text = await page.innerText("body").catch(() => "");
+  if (status !== 429 && status !== 503 && !THROTTLED.test(text.slice(0, 2000))) {
+    ok = true;
+    break;
+  }
+  console.error("attempt " + (attempt + 1) + ": HTTP " + status + ", " + text.trim().slice(0, 80));
+}
+if (!ok) {
+  console.error("the site kept throttling this sandbox's IP; try again later or use another URL");
+  process.exit(3);
+}
 await page.waitForTimeout(1000); // let late scripts and fonts settle
 await page.pdf({ path: "/workspace/out/page.pdf", format: "A4", printBackground: true,
   margin: { top: "16mm", bottom: "16mm", left: "12mm", right: "12mm" } });
