@@ -16,6 +16,7 @@ of the text. With no arguments it scrapes the Hacker News front page.
 
 import argparse
 import json
+import sys
 
 from pydo import Sandbox
 
@@ -27,9 +28,10 @@ from playwright.sync_api import sync_playwright
 
 fields = json.loads(os.environ["FIELDS"])
 with sync_playwright() as p:
-    browser = p.chromium.launch()
+    browser = p.chromium.launch(args=["--disable-dev-shm-usage"])
     page = browser.new_page()
-    page.goto(os.environ["URL"], wait_until="networkidle", timeout=45000)
+    page.goto(os.environ["URL"], wait_until="load", timeout=45000)
+    page.wait_for_selector(os.environ["ITEM"], timeout=15000)
     items = page.eval_on_selector_all(os.environ["ITEM"], """(nodes, fields) =>
         nodes.map(node => Object.fromEntries(Object.entries(fields).map(([name, spec]) => {
             const [selector, attr] = spec.split("@");
@@ -66,6 +68,7 @@ with Sandbox.create(allow_internet_access=True) as sandbox:
         "python3 /workspace/scrape.py",
         env_vars={"URL": args.url, "ITEM": args.item, "FIELDS": json.dumps(fields)},
         timeout_seconds=300,
+        on_stderr=lambda text: print(text, end="", file=sys.stderr),
     )
 
 line = next(l for l in result.stdout.splitlines() if l.startswith("RESULT "))

@@ -4,6 +4,7 @@
 // templates. Chromium prints CSS the way a browser does, including backgrounds
 // and page breaks, and it runs in the sandbox instead of on your server.
 //
+//   npx tsx html-to-pdf.ts                         # Hacker News best, to hn-best.pdf
 //   npx tsx html-to-pdf.ts https://example.com example.pdf
 //   npx tsx html-to-pdf.ts ./invoice.html invoice.pdf
 
@@ -12,11 +13,12 @@ import { existsSync } from "node:fs";
 import { Sandbox } from "@digitalocean/dots/sandbox";
 import { installChromium, readFile, runChecked, writeFile } from "./common.js";
 
-const [source, output = "output.pdf"] = process.argv.slice(2);
-if (!source) {
-    console.error("usage: html-to-pdf.ts <url-or-html-file> [output.pdf]");
-    process.exit(2);
-}
+const DEFAULT_SOURCE = "https://news.ycombinator.com/best";
+
+const args = process.argv.slice(2);
+const source = args[0] ?? DEFAULT_SOURCE;
+const output = args[1] ?? (args[0] ? "output.pdf" : "hn-best.pdf");
+if (!args[0]) console.log(`no page given, using ${DEFAULT_SOURCE}`);
 
 const SCRIPT = `
 import { chromium } from "playwright";

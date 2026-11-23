@@ -26,7 +26,7 @@ origin = urlparse(start).netloc
 queue, seen, status, found_on = [start], set(), {}, {}
 
 with sync_playwright() as p:
-    browser = p.chromium.launch()
+    browser = p.chromium.launch(args=["--disable-dev-shm-usage"])
     context = browser.new_context()
     page = context.new_page()
     visited = 0
@@ -77,6 +77,7 @@ with Sandbox.create(allow_internet_access=True) as sandbox:
         "python3 /workspace/crawl.py",
         env_vars={"START": args.url, "MAX_PAGES": str(args.max_pages)},
         timeout_seconds=1200,
+        on_stderr=lambda text: print(text, end="", file=sys.stderr),
     )
 
 line = next(l for l in result.stdout.splitlines() if l.startswith("RESULT "))
