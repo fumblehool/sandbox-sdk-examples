@@ -15,7 +15,7 @@ Runnable examples for the DigitalOcean Sandbox SDKs: [DoTs](https://github.com/d
 | [python/broken_link_checker.py](python/broken_link_checker.py) | Python | Crawl a site in a real browser, check every link, and exit 1 if any is broken. |
 | [typescript/repo-test-runner.ts](typescript/repo-test-runner.ts) | TypeScript | Clone a Git repository and run its tests (npm, pytest, or Go) in a sandbox. Exits 0 or 1, so it works as a CI step. |
 | [typescript/parallel-code-eval.ts](typescript/parallel-code-eval.ts) | TypeScript | Evaluate many untrusted code snippets at once, one sandbox each, with a concurrency cap and no network access. |
-| [typescript/streaming-repl.ts](typescript/streaming-repl.ts) | TypeScript | Keep a Python process alive, write to its standard input, and read its output as events. State carries over between turns. |
+| [typescript/streaming-repl.ts](typescript/streaming-repl.ts) | TypeScript | Keep a Python process alive, send it requests, and read its output as events. State carries over between turns. |
 | [typescript/custom-template.ts](typescript/custom-template.ts) | TypeScript | Build a template from your container image, wait for the build, and create a sandbox from it. |
 | [typescript/web-screenshot.ts](typescript/web-screenshot.ts) | TypeScript | Screenshot web pages with headless Chromium at desktop and phone sizes. |
 | [typescript/html-to-pdf.ts](typescript/html-to-pdf.ts) | TypeScript | Render a URL or local HTML file to a PDF with headless Chromium. |
@@ -58,7 +58,7 @@ Runnable examples for the DigitalOcean Sandbox SDKs: [DoTs](https://github.com/d
 * **Browser examples install Chromium on every run.** They need internet access and take a few minutes. A custom template with Chromium preinstalled removes that wait.
 * **No start from a snapshot yet.** `snapshot_checkpoint.py` shows create, wait, list, and delete. Nothing can start a sandbox from the snapshot today.
 * **Output is readable only while a command runs.** A short command such as `mkdir` can exit before the SDK attaches to its output, and the attach then fails with `NotFoundError`. The helpers `exec` (TypeScript), `run` (Python), and `runGated` (Go) prevent this: the command waits for a marker file, and a second command creates it only after the output stream is attached.
-* **The stdin route is not deployed yet.** Writing to a command's stdin returns 404 on preview, so the helpers avoid it and `typescript/streaming-repl.ts` fails until the route lands.
+* **The stdin route is not deployed yet.** Writing to a command's stdin returns 404 on preview, so the helpers avoid it, and `typescript/streaming-repl.ts` sends its requests as files instead.
 * **Always clean up.** Sandboxes bill while they exist. The examples use `with`, `await using`, or `defer` so a failure still deletes the sandbox. `python/sandbox_janitor.py` catches anything a crashed run leaves behind.
 
 ## Status

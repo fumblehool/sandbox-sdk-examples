@@ -4,18 +4,19 @@
 // install scripts and the tests run in the sandbox, not on your machine. The
 // process exits with 0 when the tests pass and 1 when they fail.
 //
+//   npx tsx repo-test-runner.ts                       # the default test repo
 //   npx tsx repo-test-runner.ts https://github.com/<owner>/<repo>.git [branch]
 //
-// It detects npm, Python (pytest), and Go projects.
+// It detects npm, Python (pytest), and Go projects. With no arguments it tests
+// cachetools, a small pure-Python library whose suite needs only pytest.
 
 import { Sandbox } from "@digitalocean/dots/sandbox";
 import { exec, runChecked, shellQuote } from "./common.js";
 
-const [repoUrl, branch] = process.argv.slice(2);
-if (!repoUrl) {
-    console.error("usage: repo-test-runner.ts <git-url> [branch]");
-    process.exit(2);
-}
+const DEFAULT_REPO = "https://github.com/tkem/cachetools.git";
+
+const [repoUrl = DEFAULT_REPO, branch] = process.argv.slice(2);
+if (repoUrl === DEFAULT_REPO) console.log(`no repository given, using ${DEFAULT_REPO}`);
 
 const DETECT = `
 if [ -f package.json ]; then echo "npm ci || npm install; npm test"
