@@ -21,7 +21,8 @@ with Sandbox.create() as sandbox:
         on_stdout=lambda text: print("live:", text, end=""),
     )
 
-    # A non-zero exit code is returned, not raised.
+    # A failing command on purpose: its non-zero exit code is returned, not raised.
     failed = run(sandbox, "ls /does-not-exist")
-    print("exit code:", failed.exit_code)
-    print("stderr:", failed.stderr.strip())
+    print("expected failure, exit code:", failed.exit_code)
+    print("expected failure, stderr:", failed.stderr.strip())
+    print("done")
