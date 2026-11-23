@@ -7,11 +7,11 @@ itself up.
     python snapshot_checkpoint.py
 
 The API cannot start a sandbox from a snapshot yet. This example shows
-the create, wait, list and delete calls that are ready today.
+the create, wait, get, list and delete calls that are ready today.
 """
 
 from pydo import Sandbox
-from pydo.sandbox import Snapshot
+from pydo.sandbox import NotFoundError, Snapshot
 
 from _common import run_checked
 
@@ -22,12 +22,21 @@ with Sandbox.create() as sandbox:
 
     snapshot = sandbox.create_snapshot(name="python-tools-ready", ttl="24h")
     print("snapshot", snapshot.snapshot_id, snapshot.state)
+    try:
+        snapshot.wait_until_ready()  # raises with the API's error if it fails
+        print("complete")
 
-    snapshot.wait_until_ready()  # raises with the API's error if it fails
-    snapshot.refresh()
-    print("complete, size in bytes:", snapshot.info.size_bytes)
+        again = Snapshot.get(snapshot.snapshot_id)
+        size = again.info.size_bytes
+        print("get:", again.name, again.state, "ttl", again.info.ttl,
+              "size", "%s bytes" % size if size else "not reported")
 
-    for item in Snapshot.list(sandbox_id=sandbox.sandbox_id):
-        print(" ", item.snapshot_id, item.name, item.state)
-
-    print("deleted:", snapshot.delete())
+        try:
+            for item in Snapshot.list(sandbox_id=sandbox.sandbox_id):
+                print("list:", item.snapshot_id, item.name, item.state)
+        except NotFoundError:
+            # GET /v2/sandboxes/snapshots returns 404 on preview for now.
+            print("list: not available on this API yet")
+    finally:
+        # Delete even when a step above fails, so no snapshot is left behind.
+        print("deleted:", snapshot.delete())
