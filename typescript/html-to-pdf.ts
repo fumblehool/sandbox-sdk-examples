@@ -20,9 +20,10 @@ if (!source) {
 
 const SCRIPT = `
 import { chromium } from "playwright";
-const browser = await chromium.launch();
+const browser = await chromium.launch({ args: ["--disable-dev-shm-usage"] });
 const page = await browser.newPage();
-await page.goto(process.env.TARGET, { waitUntil: "networkidle", timeout: 45000 });
+await page.goto(process.env.TARGET, { waitUntil: "load", timeout: 45000 });
+await page.waitForTimeout(1000); // let late scripts and fonts settle
 await page.pdf({ path: "/workspace/out/page.pdf", format: "A4", printBackground: true,
   margin: { top: "16mm", bottom: "16mm", left: "12mm", right: "12mm" } });
 await browser.close();
@@ -44,6 +45,7 @@ await runChecked(sandbox, "node print.mjs", {
     cwd: "/workspace/browser",
     envVars: { TARGET: target },
     timeoutSeconds: 300,
+    onStderr: (text) => process.stderr.write(text),
 });
 
 const pdf = await readFile(sandbox, "/workspace/out/page.pdf");
