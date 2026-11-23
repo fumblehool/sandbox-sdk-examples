@@ -6,7 +6,7 @@ fixes errors or gives the final answer.
 
     export DIGITALOCEAN_ACCESS_TOKEN=...   # sandbox scopes
     export MODEL_ACCESS_KEY=...            # DigitalOcean Inference model access key
-    export INFERENCE_MODEL=llama3.3-70b-instruct   # optional
+    export INFERENCE_MODEL=anthropic-claude-sonnet-5.5   # optional
     python ai_code_interpreter.py "What is the 50th prime number? Also plot nothing, just compute it."
 """
 
@@ -31,7 +31,7 @@ CODE_BLOCK = re.compile(r"```python\n(.*?)```", re.DOTALL)
 
 def main(question: str) -> None:
     llm = Client(token=os.environ["MODEL_ACCESS_KEY"])
-    model = os.environ.get("INFERENCE_MODEL", "llama3.3-70b-instruct")
+    model = os.environ.get("INFERENCE_MODEL", "anthropic-claude-sonnet-5.5")
     messages = [
         {"role": "system", "content": SYSTEM},
         {"role": "user", "content": question},
