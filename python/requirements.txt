@@ -1,0 +1,2 @@
+# Until the sandbox SDK is released, install pydo from the feature branch.
+pydo @ git+https://github.com/digitalocean/pydo.git@feat/sandbox-sdk

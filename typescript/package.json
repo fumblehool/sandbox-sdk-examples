@@ -1,0 +1,23 @@
+{
+  "name": "sandbox-sdk-examples",
+  "private": true,
+  "type": "module",
+  "description": "DigitalOcean Sandboxes examples (TypeScript)",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "repo-test-runner": "tsx repo-test-runner.ts",
+    "parallel-code-eval": "tsx parallel-code-eval.ts",
+    "streaming-repl": "tsx streaming-repl.ts",
+    "custom-template": "tsx custom-template.ts",
+    "web-screenshot": "tsx web-screenshot.ts",
+    "html-to-pdf": "tsx html-to-pdf.ts"
+  },
+  "dependencies": {
+    "@digitalocean/dots": "github:digitalocean/dots#feat/sandbox-sdk"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}
